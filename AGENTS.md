@@ -17,5 +17,5 @@ This repo contains Pine Script indicators that run entirely inside TradingView.
 They are renderers in the Basis V6 architecture — they consume the concept of
 Basis scores and present a proxy version in the TradingView UI.
 
-Hub API: https://basis-deploy-guide.replit.app
+Hub API: https://basisprotocol.xyz
 GitHub: github.com/shlok-lgtm

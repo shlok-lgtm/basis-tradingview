@@ -1,6 +1,6 @@
 # Basis Protocol — TradingView Indicators
 
-TradingView Pine Script indicators for [Basis Protocol](https://basis-deploy-guide.replit.app) risk surfaces.
+TradingView Pine Script indicators for [Basis Protocol](https://basisprotocol.xyz) risk surfaces.
 
 ## SII Proxy Indicator
 
@@ -8,7 +8,7 @@ A TradingView indicator that approximates the Basis Stablecoin Integrity Index (
 
 **Important:** This is a proxy, not the full SII. The real SII uses 102 components across 11 categories including reserve quality, attestation recency, holder distribution, smart contract risk, and more. This proxy captures peg stability and liquidity — roughly 55% of the full methodology.
 
-For full 102-component scores: [basis-deploy-guide.replit.app](https://basis-deploy-guide.replit.app)
+For full 102-component scores: [basisprotocol.xyz](https://basisprotocol.xyz)
 
 ### How to install
 
@@ -61,7 +61,7 @@ This proxy captures approximately 55% of the full SII methodology:
 
 Basis Protocol provides 17 primitives for building risk infrastructure on-chain. The Stablecoin Integrity Index (SII) is the first risk surface — a standardized, deterministic score measuring stablecoin operational integrity.
 
-- **API:** https://basis-deploy-guide.replit.app/api/scores
+- **API:** https://basisprotocol.xyz/api/scores
 - **MCP Server:** `npx @basis-protocol/mcp-server`
 - **GitHub:** github.com/shlok-lgtm
 

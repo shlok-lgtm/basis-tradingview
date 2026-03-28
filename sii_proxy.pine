@@ -41,7 +41,7 @@ if barstate.islast
     table.cell(info_table, 0, 0, "BASIS PROTOCOL", text_color=color.new(#14b8a6, 0), text_size=size.small)
     table.cell(info_table, 0, 1, "SII Proxy: " + str.tostring(math.round(proxy_score, 1)), text_color=score_color, text_size=size.normal)
     table.cell(info_table, 0, 2, "Grade: " + grade, text_color=score_color, text_size=size.normal)
-    table.cell(info_table, 0, 3, "Full scores: basis-deploy-guide.replit.app", text_color=color.new(#888888, 0), text_size=size.tiny)
+    table.cell(info_table, 0, 3, "Full scores: basisprotocol.xyz", text_color=color.new(#888888, 0), text_size=size.tiny)
 
 // === ALERTS ===
 alertcondition(proxy_score < 60, title="SII Below C", message="Stablecoin SII proxy dropped below C grade (60)")
