@@ -1,0 +1,170 @@
+This is a NEW project called basis-tradingview. It is NOT part of the Deploy-Guide hub. Do not import or reference any other Basis repos.
+
+This project contains TradingView Pine Script indicators for Basis Protocol. It's a standalone spoke — it points users to the Basis API but does not call it directly (Pine Script v5 cannot make HTTP requests).
+
+## Task 1: Create the Pine Script indicator
+
+Create sii_proxy.pine in the project root:
+
+//@version=5
+indicator("Basis SII Proxy", shorttitle="SII", overlay=false, precision=1)
+
+// === INPUTS ===
+peg_target = input.float(1.0, "Peg Target", tooltip="Target price (1.0 for USD stablecoins)")
+peg_weight = input.float(0.60, "Peg Weight", minval=0, maxval=1, step=0.05)
+vol_weight = input.float(0.40, "Volume Weight", minval=0, maxval=1, step=0.05)
+
+// === PEG DEVIATION SCORE ===
+peg_deviation = math.abs(close - peg_target) / peg_target * 100
+peg_score = math.max(0.0, 100.0 - peg_deviation * 2000.0)
+
+// === VOLUME HEALTH SCORE ===
+vol_sma = ta.sma(volume, 30)
+vol_ratio = vol_sma > 0 ? volume / vol_sma : 0.0
+vol_score = math.min(100.0, vol_ratio * 50.0)
+
+// === VOLATILITY PENALTY ===
+price_std = ta.stdev(close, 14)
+vol_penalty = math.max(0.0, math.min(20.0, price_std * 10000.0))
+
+// === COMPOSITE PROXY SCORE ===
+raw_score = peg_score * peg_weight + vol_score * vol_weight
+proxy_score = math.max(0.0, math.min(100.0, raw_score - vol_penalty))
+
+// === PLOTTING ===
+color score_color = proxy_score >= 85 ? color.new(#22c55e, 0) : proxy_score >= 70 ? color.new(#84cc16, 0) : proxy_score >= 55 ? color.new(#eab308, 0) : proxy_score >= 40 ? color.new(#f97316, 0) : color.new(#ef4444, 0)
+
+plot(proxy_score, "SII Proxy", color=score_color, linewidth=2)
+hline(85, "A Grade", color=color.new(#22c55e, 70), linestyle=hline.style_dotted)
+hline(70, "B Grade", color=color.new(#84cc16, 70), linestyle=hline.style_dotted)
+hline(55, "C Grade", color=color.new(#eab308, 70), linestyle=hline.style_dotted)
+
+// === GRADE LABEL ===
+string grade = proxy_score >= 90 ? "A+" : proxy_score >= 85 ? "A" : proxy_score >= 80 ? "A-" : proxy_score >= 75 ? "B+" : proxy_score >= 70 ? "B" : proxy_score >= 65 ? "B-" : proxy_score >= 60 ? "C+" : proxy_score >= 55 ? "C" : proxy_score >= 50 ? "C-" : proxy_score >= 45 ? "D" : "F"
+
+// === INFO TABLE ===
+var table info_table = table.new(position.top_right, 1, 4, bgcolor=color.new(#0a0a0a, 20), border_width=1, border_color=color.new(#333333, 0))
+
+if barstate.islast
+    table.cell(info_table, 0, 0, "BASIS PROTOCOL", text_color=color.new(#14b8a6, 0), text_size=size.small)
+    table.cell(info_table, 0, 1, "SII Proxy: " + str.tostring(math.round(proxy_score, 1)), text_color=score_color, text_size=size.normal)
+    table.cell(info_table, 0, 2, "Grade: " + grade, text_color=score_color, text_size=size.normal)
+    table.cell(info_table, 0, 3, "Full scores: basis-deploy-guide.replit.app", text_color=color.new(#888888, 0), text_size=size.tiny)
+
+// === ALERTS ===
+alertcondition(proxy_score < 60, title="SII Below C", message="Stablecoin SII proxy dropped below C grade (60)")
+alertcondition(proxy_score < 45, title="SII Below D", message="Stablecoin SII proxy dropped below D grade (45)")
+
+
+## Task 2: Create README.md
+
+Create README.md in the project root:
+
+# Basis Protocol — TradingView Indicators
+
+TradingView Pine Script indicators for [Basis Protocol](https://basis-deploy-guide.replit.app) risk surfaces.
+
+## SII Proxy Indicator
+
+A TradingView indicator that approximates the Basis Stablecoin Integrity Index (SII) using TradingView's built-in price and volume data.
+
+**Important:** This is a proxy, not the full SII. The real SII uses 102 components across 11 categories including reserve quality, attestation recency, holder distribution, smart contract risk, and more. This proxy captures peg stability and liquidity — roughly 55% of the full methodology.
+
+For full 102-component scores: [basis-deploy-guide.replit.app](https://basis-deploy-guide.replit.app)
+
+### How to install
+
+1. Open TradingView and navigate to any stablecoin chart (USDCUSD, USDTUSD, DAIUSD, etc.)
+2. Click "Indicators" at the top of the chart
+3. Click "Pine Editor" tab at the bottom
+4. Delete any existing code in the editor
+5. Copy and paste the entire contents of `sii_proxy.pine`
+6. Click "Add to Chart"
+
+### What it shows
+
+- **Score (0-100):** Higher is better. Combines peg stability (60%) and volume health (40%) with a volatility penalty.
+- **Grade (A+ to F):** Same grading scale as the full Basis SII.
+- **Color coding:** Green (A), yellow-green (B), yellow (C), orange (D), red (F).
+- **Info table:** Top-right overlay showing current score, grade, and link to full Basis scores.
+
+### Grade thresholds
+
+| Grade | Score |
+|-------|-------|
+| A+ | 90-100 |
+| A | 85-89 |
+| A- | 80-84 |
+| B+ | 75-79 |
+| B | 70-74 |
+| B- | 65-69 |
+| C+ | 60-64 |
+| C | 55-59 |
+| C- | 50-54 |
+| D | 45-49 |
+| F | 0-44 |
+
+### Built-in alerts
+
+- **SII Below C:** Triggers when proxy score drops below 60
+- **SII Below D:** Triggers when proxy score drops below 45
+
+### Works on
+
+Any stablecoin pair pegged to $1.00: USDCUSD, USDTUSD, DAIUSD, FRAXUSD, FDUSD, TUSD, PYUSD, and exchange-specific pairs (USDCUSDT, etc.).
+
+### Limitations
+
+This proxy captures approximately 55% of the full SII methodology:
+- **Included:** Peg deviation, volume health, price volatility
+- **Not included:** Reserve quality, attestation recency, holder distribution, smart contract risk, oracle integrity, governance, network risk, mint/burn dynamics
+
+## About Basis Protocol
+
+Basis Protocol provides 17 primitives for building risk infrastructure on-chain. The Stablecoin Integrity Index (SII) is the first risk surface — a standardized, deterministic score measuring stablecoin operational integrity.
+
+- **API:** https://basis-deploy-guide.replit.app/api/scores
+- **MCP Server:** `npx @basis-protocol/mcp-server`
+- **GitHub:** github.com/shlok-lgtm
+
+## Future indicators
+
+- PSI Proxy (Protocol Solvency — approximates DeFi protocol health)
+- CQI Overlay (Collateral Quality — composites SII × PSI)
+
+
+## Task 3: Create AGENTS.md
+
+Create AGENTS.md in the project root:
+
+# AGENTS.md — basis-tradingview
+
+This is a SPOKE project. It does NOT connect to the Basis hub database or import from Deploy-Guide.
+
+## Rules
+
+1. Pine Script files (.pine) are the deliverables. They run inside TradingView, not on our infrastructure.
+2. Pine Script v5 cannot make HTTP requests. All data comes from TradingView's built-in feeds.
+3. The indicator is a PROXY — it approximates Basis scores, not replicates them.
+4. Always include a link to the full Basis scores in the info table.
+5. Use the same grade thresholds as the real SII (defined in Deploy-Guide/app/scoring.py).
+6. Do not hardcode stablecoin lists. The indicator works on any chart — the user chooses what to analyze.
+
+## Architecture
+
+This repo contains Pine Script indicators that run entirely inside TradingView.
+They are renderers in the Basis V6 architecture — they consume the concept of
+Basis scores and present a proxy version in the TradingView UI.
+
+Hub API: https://basis-deploy-guide.replit.app
+GitHub: github.com/shlok-lgtm
+
+
+## Task 4: Initialize git
+
+Run:
+git init
+git add .
+git commit -m "Initial commit: SII proxy indicator for TradingView"
+
+That's it. Three files total: sii_proxy.pine, README.md, AGENTS.md.
